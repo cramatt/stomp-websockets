@@ -2,7 +2,12 @@
   "dependencies": {
     "angular": "^1.5.0",
     "angular-ui-router": "1.0.0-beta.1",
+    "js-data": "^3.0.0-rc.6",
+    "js-data-http": "^3.0.0-rc.2",
     "lodash": "^4.17.2",
+    "mobx": "^2.7.0",
+    "ng-mobx": "^1.0.0",
+    "ng-redux": "^3.4.0-beta.1",
     "uuid": "^3.0.1"
   },
   "devDependencies": {

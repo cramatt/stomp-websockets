@@ -2,16 +2,33 @@
 
 //const stompjs = require("stompjs/lib/stomp.js");
 const uuid = require('uuid');
+const mobx = require('mobx');
+const userActions = require('./../user-actions.js');
+
+import {
+  DataStore
+} from 'js-data';
 
 export const hello = {
   template: require('./hello.html'),
   /*@ngInject*/
-  controller($log, $scope) {
+  controller($log, userStore, $timeout, userDsStore, $ngRedux) {
     // create new STOMP connection via websockets
     var client = Stomp.client('ws://127.0.0.1:4444');
 
     var clientId = uuid.v4();
     console.log(clientId);
+
+    this.users = userStore.getAll();
+
+    // let unsubscribe = $ngRedux.connect(this.mapStateToThis, userActions)(this);
+    // $scope.$on('$destroy', unsubscribe);
+
+    // function mapStateToThis(state) {
+    //   return {
+    //     value: state.counter
+    //   };
+    // }
 
     // the client is notified when it is connected to the server.
     client.connect(null, null, function setupSubscriptions(frame) {
@@ -24,17 +41,32 @@ export const hello = {
       // client.subscribe('delete', handleDelete);
     });
 
+    // var dispose = mobx.autorun(() => {
+    //   this.users = userStore.getAll();
+    //   $timeout(function () {
+    //     $scope.$apply();
+    //   });
+    //   console.log('%cNEW STATE:', 'font-weight: bold');
+    //   console.log(JSON.stringify(mobx.toJS(this.users), null, 2));
+    // });
+
+    // this.$onDestroy = () => {
+    //   dispose();
+    //   unsubscribe();
+    // };
+
     // client subscription so we can unsub
 
     // subscribe to 
-    
+
 
     var handleGet = (message) => {
       let body = angular.fromJson(message.body);
       let headers = message.headers;
       $log.log('get', headers, body);
-      this.users = body;
-      $scope.$apply();
+      //this.users = body;
+      userStore.replaceAll(body);
+      //$scope.$apply();
     }
 
     function handleUpdate(message) {
@@ -66,6 +98,9 @@ export const hello = {
         return parts[parts.length - 1];
       }
       get(url) {
+        client.subscribe('rest/user', handleGet, {
+          id: clientId
+        });
         client.send('rest/user', {
           url: url,
           action: 'get',
@@ -101,12 +136,13 @@ export const hello = {
 
     var realtime = new Realtime(clientId);
 
-    function testConnection() {
+    var testConnection = () => {
       //realtime.get('/user');
       // realtime.create('/user');
       // realtime.update('/user/1', {
       //   name: 'Matt'
       // });
+      this.runGet();
     }
 
     this.runGet = function () {

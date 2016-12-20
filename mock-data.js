@@ -1,28 +1,30 @@
+const uuid = require('uuid');
+
 module.exports = {
   users: [{
-    id: 1,
+    id: uuid.v4(),
     name: 'Tim',
     favFood: 'Tacos'
   }, {
-    id: 2,
+    id: uuid.v4(),
     name: 'Matt',
     favFood: 'Cheese'
   }, {
-    id: 3,
+    id: uuid.v4(),
     name: 'Chris',
     favFood: 'Peanut Butter'
   }, {
-    id: 4,
+    id: uuid.v4(),
     name: 'Marty',
     favFood: 'Avacados'
   }],
   sessions: [{
-    id: 11,
-    name: 'Test Session 11',
+    id: uuid.v4(),
+    name: 'Test Session 1',
     state: 'STOPPED'
   }, {
-    id: 22,
-    name: 'Test Session 22',
+    id: uuid.v4(),
+    name: 'Test Session 2',
     state: 'PAUSED'
   }]
 };

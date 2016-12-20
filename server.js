@@ -1,15 +1,21 @@
 /* eslint-disable */
 
+// @todo better handling when client is removed
+// @todo es6
+
 var mockData = require('./mock-data');
 var webstomp = require("webstomp");
 var app = webstomp();
 var uuid = require('node-uuid');
 var _ = require('lodash');
 var subscribers = {}; // id['get'], id['create']
+var subs = {};
 
 // handle connect
-app.connect(function () {
-  console.log(">> client connected");
+app.connect(function (frame) {
+  console.log(">> client connected", this);
+  // store subscription to deregister later and send messages
+  this.hooks = [];
   return this.connected({
     'heart-beat': '0,0',
     server: 'stomp',
@@ -19,21 +25,23 @@ app.connect(function () {
   });
 });
 
+app.disconnect(function() {
+  console.log(">> client disconnected", this);
+  _.each(this.hooks, hook => hook());
+});
+
 // handle disconnect
 app.disconnect(function () {
   console.log("<< client disconnected");
 });
 
 // on send of each message type
-app.send("rest/user", handleGetSend);
-// app.send("update", function() {});
+app.send("update", handleUpdateSend);
 app.send("create", handleCreateSend);
-// app.send("delete", function() {});
+app.send("delete", handleDeleteSend);
 
+app.send("rest/user", handleGetSend);
 app.subscribe("rest/user", handleGetSubscribe);
-// app.subscribe("update", function () {});
-app.subscribe("create", handleCreateSubscribe);
-// app.subscribe("delete", function () {});
 
 function doAction(destination, data) {
   this.message({
@@ -49,10 +57,34 @@ function handleGetSend() {
   _sendMessageToThisSubscriber(this.headers.id, 'rest/user', mockData.users);
 }
 
+function handleDeleteSend() {
+  console.log('>> client wants to delete send', this);
+  mockData.users = _.reject(mockData.users, {id: this.headers.resourceId});
+  _sendMessageToAllSubscribers('rest/user', mockData.users);
+}
+
 function handleCreateSend() {
   console.log('>> client wants to create send', this);
   var body = JSON.parse(this.body);
-  mockData.users.push(body);
+  var newUser = {
+    id:  uuid.v4(),
+    name: body.name,
+    favFood: body.favFood
+  };
+  mockData.users.push(newUser);
+  _sendMessageToAllSubscribers('rest/user', mockData.users);
+}
+
+function handleUpdateSend() {
+  console.log('>> client wants to update send', this);
+  var body = JSON.parse(this.body);
+  var updatedUser = {
+    name: body.name,
+    favFood: body.favFood
+  };
+  var existingIndex = _.findIndex(mockData.users, {id: this.headers.resourceId});
+  mockData.users[existingIndex] = _.extend(mockData.users[existingIndex], updatedUser);
+  console.log(mockData.users);
   _sendMessageToAllSubscribers('rest/user', mockData.users);
 }
 
@@ -83,12 +115,28 @@ function _sendMessageToThisSubscriber(id, dest, data) {
 }
 
 function _sendMessageToAllSubscribers(dest, data) {
-  if(subscribers[dest]) {
-    _.each(subscribers[dest], function(sub) {
-      console.log(sub, dest, data);
+  if (subscribers[dest]) {
+    _.each(subscribers[dest], function (sub) {
       sub(dest, data);
     });
   }
+}
+
+// this function works to send to all clients, BUT if a cient has not subscribed then 
+// the message will be unhandled.
+function _sendToAllSubscribers(dest, data) {
+  console.log('>>>>>> trying to send to all users');
+  console.log(app.send());
+  _.forIn(subs, function (sub, id) {
+    console.log('>>>>>>>>> sending to ', sub.headers.id);
+    sub.message({
+      subscription: sub.headers.id,
+      action: sub.headers.action,
+      destination: dest,
+      "message-id": uuid.v4()
+    }, JSON.stringify(data));
+  });
+  //app.send(dest, JSON.stringify(data));
 }
 
 app.listen(4444);

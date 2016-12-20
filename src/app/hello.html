@@ -1,8 +1,32 @@
 <div mobx-autorun>
-  <h1>Crud Test</h1>
-  <button ng-click="$ctrl.runGet()">Get</button>
-  <button ng-click="$ctrl.runCreate()">Create</button>
-  <ul>
-    <li ng-repeat="user in $ctrl.users">{{user.name}} likes {{user.favFood}}</li>
+  <h1>STOMP WebSockets! (hint: open all the <a href="/" target="_blank">windows</a>)</h1>
+  <p>Resourceful pub/sub STOMP protocol. See README.md for more info.</p>
+  <hr />
+  <h2>Active Users</h2>
+  <button ng-if="!$ctrl.users.length" ng-click="$ctrl.runGet()">Get all &amp; users and subscribe</button>
+  <ul ng-if="$ctrl.users.length">
+    <li ng-repeat="user in $ctrl.users">
+      <span ng-if="!user.edit">
+        {{user.name}} likes {{user.favFood}}
+        <button ng-click="$ctrl.runDelete(user)">delete</button>
+        <button ng-click="user.edit = true">edit</button>
+      </span>
+      <form ng-if="user.edit" ng-submit="$ctrl.runUpdate(user); user.edit = false;">
+        <input required ng-model="user.name" />
+        <input required ng-model="user.favFood" />
+        <button type="submit">Save</button>
+        <button type="reset" ng-click="user.edit = false">Cancel</button>
+      </form>
+    </li>
   </ul>
+  <p ng-if="!$ctrl.users.length">
+    No users yet. Try pressing the button or creating one!
+  </p>
+  <hr />
+  <h2>Create New User</h2>
+  <form ng-submit="$ctrl.runCreate($ctrl.user); $ctrl.user = null;">
+    <input required ng-model="$ctrl.user.name" placeholder="Name" />
+    <input required ng-model="$ctrl.user.favFood" placeholder="Favorite Food" />
+    <button type="submit">Create</button>
+  </form>
 </div>

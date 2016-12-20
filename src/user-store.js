@@ -1,4 +1,3 @@
-
 // @see https://github.com/gaui/todoApp-angular-mobx-webpack
 // @see https://www.gaui.is/angular-1-5-todo-app/
 

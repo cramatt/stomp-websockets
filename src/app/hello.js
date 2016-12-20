@@ -8,8 +8,6 @@ export const hello = {
   /*@ngInject*/
   controller($log, $scope) {
     // create new STOMP connection via websockets
-    var ws = new WebSocket('ws://127.0.0.1:4444');
-    console.log(Stomp);
     var client = Stomp.client('ws://127.0.0.1:4444');
 
     var clientId = uuid.v4();
@@ -18,7 +16,9 @@ export const hello = {
     // the client is notified when it is connected to the server.
     client.connect(null, null, function setupSubscriptions(frame) {
       console.log('setupSubscriptions for frame', frame);
-      client.subscribe('get/' + clientId, handleGet);
+      client.subscribe('rest/user', handleGet, {
+        id: clientId
+      });
       // client.subscribe('update', handleUpdate);
       // client.subscribe('create', handleCreate);
       // client.subscribe('delete', handleDelete);
@@ -66,7 +66,7 @@ export const hello = {
         return parts[parts.length - 1];
       }
       get(url) {
-        client.send('get/' + clientId, {
+        client.send('rest/user', {
           url: url,
           action: 'get',
           id: this.id,
@@ -84,8 +84,9 @@ export const hello = {
         client.send('create', {
           url: url,
           action: 'create',
+          id: this.id,
           resourceId: this._getIdFromUrl(url)
-        }, newBody);
+        }, angular.toJson(newBody));
       }
       delete(url) {
         client.send('delete', {
@@ -109,8 +110,7 @@ export const hello = {
     }
 
     this.runGet = function () {
-      ws.send('a commend');
-      //realtime.get('/user');
+      realtime.get('rest/user');
     }
 
     this.runCreate = function () {

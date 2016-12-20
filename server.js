@@ -25,32 +25,70 @@ app.disconnect(function () {
 });
 
 // on send of each message type
-app.send("get/:id", handleGetSend);
+app.send("rest/user", handleGetSend);
 // app.send("update", function() {});
-app.send("create/:id", handleCreateSend);
+app.send("create", handleCreateSend);
 // app.send("delete", function() {});
 
-app.subscribe("get/:id", handleGetSubscribe);
+app.subscribe("rest/user", handleGetSubscribe);
 // app.subscribe("update", function () {});
-//app.subscribe("create/:id", handleCreateSubscribe);
+app.subscribe("create", handleCreateSubscribe);
 // app.subscribe("delete", function () {});
+
+function doAction(destination, data) {
+  this.message({
+    subscription: this.headers.id,
+    action: this.headers.action,
+    destination: destination,
+    "message-id": uuid.v4()
+  }, JSON.stringify(data));
+}
 
 function handleGetSend() {
   console.log('>> client wants to get send', this);
+  _sendMessageToThisSubscriber(this.headers.id, 'rest/user', mockData.users);
 }
 
 function handleCreateSend() {
   console.log('>> client wants to create send', this);
+  var body = JSON.parse(this.body);
+  mockData.users.push(body);
+  _sendMessageToAllSubscribers('rest/user', mockData.users);
 }
 
 function handleGetSubscribe() {
   console.log('>> client wants to subscribe to get', this);
-  this.message({
-    subscription: this.headers.id,
-    action: this.headers.action,
-    destination: 'get/' + this.headers.id,
-    "message-id": uuid.v4()
-  }, JSON.stringify(mockData.users));
+  // ensure this user gets all events 
+  // @todo clean this up to remove both
+  // @todo unsub on disconnect
+  subscribers['rest/user'] = subscribers['rest/user'] || [];
+  subscribers['rest/user'].push(doAction.bind(this));
+  // and get this event
+  subscribers[this.headers.id] = subscribers[this.headers.id] || {};
+  subscribers[this.headers.id]['rest/user'] = doAction.bind(this);
+}
+
+function handleCreateSubscribe() {
+  console.log('>> client wants to subscribe to create', this);
+  subscribers[this.headers.id] = subscribers[this.headers.id] || {};
+  subscribers[this.headers.id]['create'] = doAction.bind(this);
+}
+
+////// 
+
+function _sendMessageToThisSubscriber(id, dest, data) {
+  if (subscribers[id] && subscribers[id][dest]) {
+    subscribers[id][dest](dest, data);
+  }
+}
+
+function _sendMessageToAllSubscribers(dest, data) {
+  if(subscribers[dest]) {
+    _.each(subscribers[dest], function(sub) {
+      console.log(sub, dest, data);
+      sub(dest, data);
+    });
+  }
 }
 
 app.listen(4444);

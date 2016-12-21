@@ -1,6 +1,6 @@
 const uuid = require('uuid');
-import {Realtime} from './../realtime';
 const Stomp = require('stompjs/lib/stomp').Stomp;
+import {Realtime} from './../realtime';
 
 export const hello = {
   template: require('./hello.html'),

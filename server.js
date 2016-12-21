@@ -6,7 +6,7 @@
 var mockData = require('./mock-data');
 var webstomp = require("webstomp");
 var app = webstomp();
-var uuid = require('node-uuid');
+var uuid = require('uuid');
 var _ = require('lodash');
 var subscribers = {}; // id['get'], id['create']
 var subs = {};

@@ -18,7 +18,7 @@ This project is the result of a development spike looking at how to connect an A
 
 Basic workflow to support:
 
-- On initial webapp load, make a bunch of requests to get all existing resources (ex get all users, get all sessions, get all entities).
+- On initial webapp load, make a bunch of requests to get all existing resources (ex: get all users, get all sessions, get all entities).
 - Subscribe to updates for each resource (create, update, delete).
 - Maintain state between server and client. 
 
@@ -26,9 +26,9 @@ Basic design goals:
 
 - Avoid reinventing the wheel.
 - How do other folks connect Spring server and JS client via WebSockets?
-- How messages should be structured? For example, I’m very familiar with the SailsJS socket pattern which emulates rest endpoints in something called Resourceful Pub/Sub. Internally they call this pattern HTTP sim or "virtual request interpretation" (VRI for short).
-- If “rooms” and “Channels” are supported (similar to socket.io and other javascript implementations)?
-- If it makes sense to use https://github.com/beevelop/ng-stomp.
+- How should messages should be structured? (ex: "I’m very familiar with the SailsJS socket pattern which emulates rest endpoints in something called Resourceful Pub/Sub. Internally they call this pattern HTTP sim or "virtual request interpretation" (VRI for short).
+- If “Rooms” and “Channels” are supported (similar to socket.io and other javascript implementations)?
+- Does it make sense to use https://github.com/beevelop/ng-stomp ?
 - How I might setup a simple NodeJS server to simulate the Spring stomp interface? 
 - Use Angular to get access to our wealth of components already developed.
 
@@ -38,7 +38,7 @@ There are likely more, but the biggest initial assumption is:
 
 - The client can implement a RESTful pattern, updating entities and their properties, and the server is responsible for logic based on entity changes. 
 
-For example lets say that when a user's name changes the server sends out a welcome email. In this case, the client would simply send the update and the server would do the rest. 
+(ex: Let's say that when a user's name changes, the server sends out a welcome email. In this case, the client would simply send the update and the server would do the rest.)
 
 ```js 
 socket.send('/rest/user/1', {name: 'newName'});
@@ -66,9 +66,9 @@ Socket.io gained a lot of traction in the early days of node because it made rea
 
 Much of what Socket.io provides is backwards compatibility with old browsers that don't support Native WebSockets. The other big feature is the concept of rooms and channels. You can subscribe to a room and only get messages sent to that room. The last killer feature is broadcast, the ability for a Socket server to send a message to all clients at once. Socket requires both a Server and Client library to work properly. 
 
-STOMP on the other hand is a specification which can be implemented using different real-time transport methods, like WebSockets, ActiveMQ, etc. Typically you'd use a library that implements STOMP for you, for example [StompJS](https://github.com/jmesnil/stomp-websocket) for Javascript. At a high level, you connect, subscribe, and send messages. There is no channel, room, or broadcast - so the client and server must implement this on their own. 
+STOMP on the other hand is a specification which can be implemented using different real-time transport methods, like WebSockets, ActiveMQ, etc. Typically you'd use a library that implements STOMP for you (ex: [StompJS](https://github.com/jmesnil/stomp-websocket) for Javascript). At a high level, you connect, subscribe, and send messages. There is no channel, room, or broadcast - so the client and server must implement this on their own. 
 
-At a high level STOMP messages have `destination, body, headers`. Example: 
+At a high level STOMP messages have `destination, body, headers`. (ex:)
 
 ```js 
 stomp.client.subscribe('weather', message => {
@@ -77,7 +77,7 @@ stomp.client.subscribe('weather', message => {
 stomp.client.send('weather');
 ```
 
-At a high level Socket messages have a `event type, body`. Example
+At a high level Socket messages have a `event type, body`. (ex:)
 
 ```js 
 socket.client.on('weather', data => {
@@ -88,25 +88,26 @@ socket.client.emit('weather');
 
 ### Tech Stack 
 
-After trying a few different options, I decided on this Stack. Note this is basically what Spring recommends using. 
+After trying a few different options, I decided on this Stack.: 
+Note: this is basically what Spring recommends using. 
 
 - Native WebSockets 
 - StompJS - not under active development, but still the go-to standard (used by Spring).
 - AngularJS 1.5.x - Until 2.0 is more widely adopted and our internal tooling is moved over.
 
-Trying it out 
+Trying it out:
 
 - Mobx - On the client we need to maintain application state. In Angular, this is typically done with a service, adding to rootScope, or with a library like JSData. Modx serves this purpose for us, with the added benefit of Immutability = less scope digest cycles = better performance! If this ultimately doesn't work out it's low effort to swap in an alternative. 
 
-On deck 
+On deck:
 
 - SockJS - A more robust implementation of WebSockets. We'll likely need this soon (also used by Spring). 
 
-For development only 
+For development only:
 
 - [WebStomp](https://github.com/aj0strow/webstomp) Turns out one of the most difficult things about STOMP is implementing a broker/ server. I've used WebStomp to prototype a server for development.  
 
-Considered but not chosen
+Considered but not chosen:
 
 - React / Redux / etc. - The devs here are doing amazing things, and there is no doubt some new amazing way to maintain state between server and client, but ultimately I wanted to stick with frameworks that we have domain expertise in. 
 - JSData / JSData Angular / JSData HTTP - I've used these in the past, but they seemed overkill here because we are not using REST at all and there is really no data modeling we need to support. Seems like Mobx will be a better fit.
@@ -208,11 +209,11 @@ stomp.send('userState', {data: this.users);
 
 ### Rooms and channels 
 
-It's up to the server to support this if needed. Its really as simple as maintaining a hash of connected clients and their subscriptions. [See this issue on GitHub](https://github.com/aj0strow/webstomp/issues/1). 
+It's up to the server to support this if needed. It's really as simple as maintaining a hash of connected clients and their subscriptions. [See this issue on GitHub](https://github.com/aj0strow/webstomp/issues/1). 
 
 ## Questions 
 
-A few questions still linger which need to be answered by a Spring specialist 
+A few questions still linger which need to be answered by a Spring specialist:
 
 
-- What is the easiest to integrate from a destination standpoint on the Spring side? For example does Spring work better with destinations that map to resources `/rest/user/1` or would be simple to map to `create, update, delete`. 
+- What is the easiest to integrate from a destination standpoint on the Spring side? (ex: Does Spring work better with destinations that map to resources `/rest/user/1` or would be simple to map to `create, update, delete`?)

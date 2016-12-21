@@ -168,6 +168,8 @@ stomp.send('delete', {url: '/rest/user/1', data: {id: 1}});
 
 Similar to the previous, with one key difference - the client does not worry about adding, removing, etc. users. Every time the state changes the entire state is sent over STOMP and the client replaces everything. [Here is an example](https://github.com/tjwebb/sails-todomvc/blob/master/assets/js/todomvc.js#L39-L52). Only 1 subscribe is needed per resource type. The example included in src/app is a working example of this. 
 
+Note: this pattern might make it more difficult to perform actions based on subscription events from the server. For example if our client app wanted to display a notification evey time a new user was created (via other clients), we can't simply implement `subscribe('user created', showNotificationCallback)`. However, we should be able to take advantage of the Mobx store here, using [computed](https://mobxjs.github.io/mobx/refguide/computed-decorator.html) and [observable](https://mobxjs.github.io/mobx/refguide/observe.html) decorators. 
+
 ```js 
 stomp.subscribe('/rest/user', users => {
   this.users.replaceAll(users);
@@ -206,6 +208,23 @@ stomp.subscribe('userState', users => {
 });
 stomp.send('userState', {data: this.users); 
 ```
+
+### Stores 
+
+Below is an example of a Mobx store which prints remaining todo items automatically whent he list is changed (mutated). 
+
+```js
+autorun(() => {
+  console.log("Remaining:", todos
+    .filter(todo => !todo.completed)
+    .map(todo => todo.title)
+    .join(", ")
+  );
+});
+``` 
+
+See [the docs](https://mobxjs.github.io/mobx/index.html) for more info and some [interesting UI state](https://mobxjs.github.io/mobx/best/store.html) approaches.
+
 
 ### Rooms and channels 
 

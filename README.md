@@ -88,20 +88,20 @@ socket.client.emit('weather');
 
 ### Tech Stack 
 
-After trying a few different options, I decided on this Stack.: 
-Note: this is basically what Spring recommends using. 
+After trying a few different options, I decided on this Stack. Note: this is basically what Spring recommends using, with the addition of Angular. 
 
-- Native WebSockets 
-- StompJS - not under active development, but still the go-to standard (used by Spring).
+- [Native WebSockets](https://developer.mozilla.org/en-US/docs/Web/API/WebSockets_API) 
+- [StompJS aka stomp-websocket](https://github.com/jmesnil/stomp-websocket) - not under active development, but still the go-to standard (used by Spring).
 - AngularJS 1.5.x - Until 2.0 is more widely adopted and our internal tooling is moved over.
 
 Trying it out:
 
-- Mobx - On the client we need to maintain application state. In Angular, this is typically done with a service, adding to rootScope, or with a library like JSData. Modx serves this purpose for us, with the added benefit of Immutability = less scope digest cycles = better performance! If this ultimately doesn't work out it's low effort to swap in an alternative. 
+- [Mobx](https://mobxjs.github.io/mobx/) - On the client we need to maintain application state. In Angular, this is typically done with a service, adding to rootScope, or with a library like JSData. Modx serves this purpose for us, with the added benefit of Immutability = less scope digest cycles = better performance! If this ultimately doesn't work out it's low effort to swap in an alternative. 
+- [ng-mobx](https://github.com/500tech/ng-mobx) directive which runs digest cylce on store change.
 
 On deck:
 
-- SockJS - A more robust implementation of WebSockets. We'll likely need this soon (also used by Spring). 
+- [SockJS](https://github.com/sockjs/sockjs-client) - A more robust implementation of WebSockets. We'll likely need this soon (also used by Spring). 
 
 For development only:
 
@@ -110,7 +110,7 @@ For development only:
 Considered but not chosen:
 
 - React / Redux / etc. - The devs here are doing amazing things, and there is no doubt some new amazing way to maintain state between server and client, but ultimately I wanted to stick with frameworks that we have domain expertise in. 
-- JSData / JSData Angular / JSData HTTP - I've used these in the past, but they seemed overkill here because we are not using REST at all and there is really no data modeling we need to support. Seems like Mobx will be a better fit.
+- [JSData](http://www.js-data.io/) / JSData Angular / JSData HTTP - I've used these in the past, but they seemed overkill here because we are not using REST at all and there is really no data modeling we need to support. Seems like Mobx will be a better fit.
 
 ### WebSocket message structure 
 
@@ -214,6 +214,5 @@ It's up to the server to support this if needed. It's really as simple as mainta
 ## Questions 
 
 A few questions still linger which need to be answered by a Spring specialist:
-
 
 - What is the easiest to integrate from a destination standpoint on the Spring side? (ex: Does Spring work better with destinations that map to resources `/rest/user/1` or would be simple to map to `create, update, delete`?)

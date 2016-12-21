@@ -21,21 +21,15 @@ export const hello = {
     // see `mobx-autorun` directive which magically runs digest cycle when store changes
     this.users = userStore.getAll();
 
+    // called on success connect with frame
+    const connectSuccess = frame => {
+      $log.log('Successful connect. Client can now subscribe.', frame);
+    };
+
     // connect to STOMP server
     client.connect({
       id: clientId
-    }, () => {
-      $log.log('Successful connect. Client can now subscribe.');
-      const handleGet = message => {
-        const body = angular.fromJson(message.body);
-        const headers = message.headers;
-        $log.log('get', headers, body);
-        userStore.replaceAll(body);
-      };
-      client.subscribe('rest/user', handleGet, {
-        id: clientId
-      });
-    });
+    }, connectSuccess);
 
     // Realtime interface
     // @todo implement getAndSubscribe method which addresses the common use case
@@ -44,7 +38,13 @@ export const hello = {
     // simple interface for testing CRUD actions
     // in realtiy these would be built out as components
     this.runGet = () => {
-      realtime.get('rest/user');
+      const handleGet = message => {
+        const body = angular.fromJson(message.body);
+        const headers = message.headers;
+        $log.log('get', headers, body);
+        userStore.replaceAll(body);
+      };
+      realtime.getAndSubscribe('rest/user', handleGet);
     };
 
     this.runCreate = user => {

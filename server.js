@@ -43,15 +43,6 @@ app.send("delete", handleDeleteSend);
 app.send("rest/user", handleGetSend);
 app.subscribe("rest/user", handleGetSubscribe);
 
-function doAction(destination, data) {
-  this.message({
-    subscription: this.headers.id,
-    action: this.headers.action,
-    destination: destination,
-    "message-id": uuid.v4()
-  }, JSON.stringify(data));
-}
-
 function handleGetSend() {
   console.log('>> client wants to get send', this);
   _sendMessageToThisSubscriber(this.headers.id, 'rest/user', mockData.users);
@@ -88,6 +79,15 @@ function handleUpdateSend() {
   _sendMessageToAllSubscribers('rest/user', mockData.users);
 }
 
+function doAction(destination, data) {
+  this.message({
+    subscription: this.headers.id,
+    action: this.headers.action,
+    destination: destination,
+    "message-id": uuid.v4()
+  }, JSON.stringify(data));
+}
+
 function handleGetSubscribe() {
   console.log('>> client wants to subscribe to get', this);
   // ensure this user gets all events 
@@ -98,12 +98,6 @@ function handleGetSubscribe() {
   // and get this event
   subscribers[this.headers.id] = subscribers[this.headers.id] || {};
   subscribers[this.headers.id]['rest/user'] = doAction.bind(this);
-}
-
-function handleCreateSubscribe() {
-  console.log('>> client wants to subscribe to create', this);
-  subscribers[this.headers.id] = subscribers[this.headers.id] || {};
-  subscribers[this.headers.id]['create'] = doAction.bind(this);
 }
 
 ////// 

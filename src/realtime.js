@@ -9,8 +9,11 @@ export class Realtime {
     const parts = url.split('/');
     return parts[parts.length - 1];
   }
-  get(url) {
-    this.client.send('rest/user', {
+  getAndSubscribe(url, callback) {
+    this.client.subscribe(url, callback, {
+      id: this.clientId
+    });
+    this.client.send(url, {
       url,
       action: 'get',
       id: this.clientId,
@@ -21,6 +24,7 @@ export class Realtime {
     this.client.send('update', {
       url,
       action: 'update',
+      id: this.clientId,
       resourceId: this._getIdFromUrl(url)
     }, angular.toJson(newBody));
   }
@@ -36,6 +40,7 @@ export class Realtime {
     this.client.send('delete', {
       url,
       action: 'delete',
+      id: this.clientId,
       resourceId: this._getIdFromUrl(url)
     });
   }
